@@ -1,10 +1,10 @@
 "use client"
 
 import Link from "next/link"
-import { useRouter, useSearchParams } from "next/navigation"
+import { useRouter } from "next/navigation"
 import { signIn } from "next-auth/react"
 import { ArrowLeft, Check, Eye, EyeOff, LockKeyhole, Mail, User } from "lucide-react"
-import { useState, useEffect } from "react"
+import { useState } from "react"
 
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
@@ -105,34 +105,14 @@ export default function AuthPage({ mode }: AuthPageProps) {
   const copy = authCopy[mode]
   const isRegister = mode === "register"
   const router = useRouter()
-  const searchParams = useSearchParams()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [showPassword, setShowPassword] = useState(false)
   const [formData, setFormData] = useState({
     name: "",
     email: "",
     password: "",
   })
-
-  useEffect(() => {
-    const registered = searchParams.get("registered")
-    const verified = searchParams.get("verified")
-    const errorParam = searchParams.get("error")
-
-    if (registered === "true") {
-      setSuccess("Registration successful! Please check your email to verify your account.")
-    } else if (verified === "true") {
-      setSuccess("Email verified successfully! You can now log in.")
-    } else if (errorParam === "invalid-token") {
-      setError("Invalid verification link. Please try registering again.")
-    } else if (errorParam === "token-expired") {
-      setError("Verification link expired. Please register again.")
-    } else if (errorParam === "verification-failed") {
-      setError("Verification failed. Please try again.")
-    }
-  }, [searchParams])
 
   const handleInputChange = (field: string) => (e: React.ChangeEvent<HTMLInputElement>) => {
     setFormData(prev => ({ ...prev, [field]: e.target.value }))
@@ -158,19 +138,33 @@ export default function AuthPage({ mode }: AuthPageProps) {
           throw new Error(data.error || "Registration failed")
         }
 
-        router.push("/login?registered=true")
+        const result = await signIn("credentials", {
+          email: formData.email,
+          password: formData.password,
+          redirect: false,
+          callbackUrl: "/dashboard",
+        })
+
+        if (result?.error) {
+          throw new Error("Account created, but automatic sign in failed. Please log in.")
+        }
+
+        router.replace("/dashboard")
+        router.refresh()
       } else {
         const result = await signIn("credentials", {
           email: formData.email,
           password: formData.password,
           redirect: false,
+          callbackUrl: "/dashboard",
         })
 
         if (result?.error) {
           throw new Error("Invalid email or password")
         }
 
-        router.push("/")
+        router.replace("/dashboard")
+        router.refresh()
       }
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong")
@@ -182,8 +176,8 @@ export default function AuthPage({ mode }: AuthPageProps) {
     setIsLoading(true)
     setError(null)
     try {
-      await signIn("google", { callbackUrl: "/" })
-    } catch (err) {
+      await signIn("google", { callbackUrl: "/dashboard" })
+    } catch {
       setError("Failed to sign in with Google")
       setIsLoading(false)
     }
@@ -235,11 +229,6 @@ export default function AuthPage({ mode }: AuthPageProps) {
               <h2 className="mt-2 font-display text-2xl font-bold text-slate-900 sm:text-3xl">{copy.title}</h2>
 
               <form className="mt-6 space-y-4" onSubmit={handleSubmit}>
-                {success && (
-                  <div className="rounded-lg bg-green-50 border border-green-200 p-3 text-sm text-green-600">
-                    {success}
-                  </div>
-                )}
                 {error && (
                   <div className="rounded-lg bg-red-50 border border-red-200 p-3 text-sm text-red-600">
                     {error}

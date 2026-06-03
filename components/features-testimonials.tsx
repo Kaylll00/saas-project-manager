@@ -107,7 +107,7 @@ export default function FeaturesTestimonials() {
             return (
               <div
                 key={index}
-                className="group relative p-6 rounded-xl border border-slate-200 ${feature.borderColor} transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer bg-white overflow-hidden"
+                className={`group relative p-6 rounded-xl border border-slate-200 ${feature.borderColor} transition-all duration-300 hover:shadow-xl hover:-translate-y-2 cursor-pointer bg-white overflow-hidden`}
                 style={{ transitionDelay: `${index * 100}ms` }}
               >
                 <div className={`absolute inset-0 bg-gradient-to-br ${feature.bgColor} to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300`}></div>

@@ -66,7 +66,7 @@ export default function Pricing() {
   const getPrice = (plan: typeof plans[0]) => {
     if (!plan.monthlyPrice) return "Custom"
     const price = billingCycle === "monthly" ? plan.monthlyPrice : plan.annualPrice
-    return `₱${price?.toLocaleString()}`
+    return `$${price?.toLocaleString()}`
   }
 
   const getSavings = (plan: typeof plans[0]) => {
@@ -121,12 +121,11 @@ export default function Pricing() {
         <div className="grid md:grid-cols-3 gap-8 mt-12">
           {plans.map((plan, index) => (
             <div
-              key={index}
-              className="relative bg-white rounded-2xl shadow-lg transition-all duration-700 cursor-pointer hover:shadow-2xl hover:-translate-y-2 ${
-                plan.popular 
-                  ? 'border-2 border-indigo-500 shadow-2xl scale-105 hover:scale-110' 
-                  : 'border border-slate-200 hover:border-indigo-300'
-              }"
+              key={index}className={`relative bg-white rounded-2xl shadow-lg transition-all duration-700 cursor-pointer hover:shadow-2xl hover:-translate-y-2 ${
+  plan.popular 
+    ? 'border-2 border-indigo-500 shadow-2xl scale-105 hover:scale-110' 
+    : 'border border-slate-200 hover:border-indigo-300'
+}`}
               style={{ transitionDelay: `${index * 150}ms` }}
             >
               {plan.popular && (

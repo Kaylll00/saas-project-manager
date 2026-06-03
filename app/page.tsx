@@ -1,7 +1,7 @@
 "use client"
 
 import { Button } from "@/components/ui/button"
-import { Check, Lock, Play, Sparkles, ArrowUp } from "lucide-react"
+import { Check, Lock, Play, ArrowUp } from "lucide-react"
 import Link from "next/link"
 import FeaturesTestimonials from "@/components/features-testimonials"
 import Pricing from "@/components/Pricing"
@@ -9,13 +9,11 @@ import FAQ from "@/components/FAQ"
 import Footer from "@/components/Footer"
 import UserMenu from "@/components/UserMenu"
 import { useState, useEffect } from "react"
-import { useScrollAnimation } from "@/hooks/useScrollAnimation"
 
 export default function HomePage() {
   const [showBackToTop, setShowBackToTop] = useState(false)
   const [isLoaded, setIsLoaded] = useState(false)
-  const heroAnimation = useScrollAnimation()
-  const dividerAnimation = useScrollAnimation()
+
 
   useEffect(() => {
     setIsLoaded(true)
@@ -44,11 +42,11 @@ export default function HomePage() {
             </div>
             
             <div className="hidden md:flex items-center space-x-1">
-              <a href="#" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">Features</a>
-              <a href="#" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">Solutions</a>
-              <a href="#" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">Pricing</a>
-              <a href="#" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">Resources</a>
-              <a href="#" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">About</a>
+              <a href="#features" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">Features</a>
+              <a href="#features" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">Solutions</a>
+              <a href="#pricing" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">Pricing</a>
+              <a href="#faq" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">Resources</a>
+              <a href="#about" className="px-4 py-2 text-slate-600 hover:text-indigo-600 hover:bg-indigo-50 rounded-lg transition-all duration-200">About</a>
             </div>
 
             <div className="flex items-center space-x-3">
@@ -128,7 +126,7 @@ export default function HomePage() {
       </div>
 
       {/* Divider */}
-      <div ref={dividerAnimation.ref} className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         <div className="relative">
           <div className="absolute inset-0 flex items-center" aria-hidden="true">
             <div className="w-full border-t border-slate-200"></div>
@@ -146,7 +144,9 @@ export default function HomePage() {
       </div>
 
       {/* Features and Testimonials */}
-      <FeaturesTestimonials />
+      <section id="features">
+        <FeaturesTestimonials />
+      </section>
 
       {/* Divider */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -167,7 +167,9 @@ export default function HomePage() {
       </div>
 
       {/* Pricing Section */}
-      <Pricing />
+      <section id="pricing">
+        <Pricing />
+      </section>
 
       {/* Divider */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
@@ -186,7 +188,9 @@ export default function HomePage() {
       </div>
 
       {/* FAQ Section */}
-      <FAQ />
+      <section id="faq">
+        <FAQ />
+      </section>
 
       {/* Divider before Footer */}
       <div className="bg-white">
@@ -209,7 +213,9 @@ export default function HomePage() {
       </div>
 
       {/* Footer */}
-      <Footer />
+      <section id="about">
+        <Footer />
+      </section>
 
       {/* Back to Top Button */}
       {showBackToTop && (

@@ -15,6 +15,12 @@ export const authOptions: NextAuthOptions = {
     GoogleProvider({
       clientId: process.env.GOOGLE_CLIENT_ID ?? "",
       clientSecret: process.env.GOOGLE_CLIENT_SECRET ?? "",
+      authorization: {
+        params: {
+          access_type: "offline",
+          response_type: "code"
+        }
+      }
     }),
     CredentialsProvider({
       name: "credentials",
@@ -33,10 +39,6 @@ export const authOptions: NextAuthOptions = {
 
         if (!user || !user.passwordHash) {
           throw new Error("Invalid email or password");
-        }
-
-        if (!user.emailVerified) {
-          throw new Error("Please verify your email before logging in");
         }
 
         const isPasswordValid = await bcrypt.compare(
@@ -76,4 +78,5 @@ export const authOptions: NextAuthOptions = {
   pages: {
     signIn: "/login",
   },
+  secret: process.env.NEXTAUTH_SECRET,
 };
