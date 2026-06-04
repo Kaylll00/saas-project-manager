@@ -4,3 +4,17 @@ import { twMerge } from "tailwind-merge"
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
+
+export function formatTimeAgo(dateStr: string): string {
+  const now = Date.now()
+  const date = new Date(dateStr).getTime()
+  const diffMs = now - date
+  const mins = Math.floor(diffMs / 60000)
+  if (mins < 1) return "just now"
+  if (mins < 60) return `${mins}m ago`
+  const hours = Math.floor(mins / 60)
+  if (hours < 24) return `${hours}h ago`
+  const days = Math.floor(hours / 24)
+  if (days < 7) return `${days}d ago`
+  return new Date(dateStr).toLocaleDateString()
+}

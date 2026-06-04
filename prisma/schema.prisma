@@ -184,6 +184,8 @@ model User {
   tasks_tasks_assignee_idTousers   tasks[]             @relation("tasks_assignee_idTousers")
   tasks_tasks_created_by_idTousers tasks[]             @relation("tasks_created_by_idTousers")
   workspace_members                workspace_members[]
+  user_notification_settings       user_notification_settings?
+  user_presence                    user_presence[]
   workspaces                       workspaces[]
 
   @@map("users")
@@ -260,6 +262,36 @@ enum task_status {
   IN_REVIEW
   DONE
   CANCELED
+}
+
+model user_notification_settings {
+  id              String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id         String   @unique @db.Uuid
+  task_assigned   Boolean  @default(true)
+  status_changed  Boolean  @default(true)
+  new_comment     Boolean  @default(true)
+  task_due_soon   Boolean  @default(true)
+  new_project     Boolean  @default(true)
+  member_joined   Boolean  @default(true)
+  invitation_received Boolean @default(true)
+  created_at      DateTime @default(now()) @db.Timestamptz(6)
+  updated_at      DateTime @default(now()) @db.Timestamptz(6)
+  users           User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@map("user_notification_settings")
+}
+
+model user_presence {
+  id            String   @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  user_id       String   @db.Uuid
+  resource_type String   @map("resource_type")
+  resource_id   String   @map("resource_id")
+  last_seen_at  DateTime @default(now()) @map("last_seen_at") @db.Timestamptz(6)
+  users         User     @relation(fields: [user_id], references: [id], onDelete: Cascade, onUpdate: NoAction)
+
+  @@unique([user_id, resource_type, resource_id])
+  @@index([resource_type, resource_id, last_seen_at])
+  @@map("user_presence")
 }
 
 enum workspace_role {

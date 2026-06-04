@@ -2,15 +2,16 @@
 
 import { useState, useCallback } from "react"
 
-type ToastVariant = "success" | "error" | "info"
+export type ToastVariant = "success" | "error" | "info"
 
-type Toast = {
+export type Toast = {
   id: string
   message: string
   variant: ToastVariant
+  leaving: boolean
 }
 
-type AddToast = (message: string, variant?: ToastVariant) => void
+export type AddToast = (message: string, variant?: ToastVariant) => void
 
 let globalAddToast: AddToast | null = null
 
@@ -19,15 +20,27 @@ export function useToast() {
 
   const addToast: AddToast = useCallback((message, variant = "info") => {
     const id = crypto.randomUUID()
-    setToasts((prev) => [...prev, { id, message, variant }])
+    setToasts((prev) => [...prev, { id, message, variant, leaving: false }])
 
+    // Start exit animation before removing
     setTimeout(() => {
-      setToasts((prev) => prev.filter((t) => t.id !== id))
-    }, 4000)
+      setToasts((prev) =>
+        prev.map((t) => (t.id === id ? { ...t, leaving: true } : t))
+      )
+      // Remove after animation completes
+      setTimeout(() => {
+        setToasts((prev) => prev.filter((t) => t.id !== id))
+      }, 300)
+    }, 4700)
   }, [])
 
   const removeToast = useCallback((id: string) => {
-    setToasts((prev) => prev.filter((t) => t.id !== id))
+    setToasts((prev) =>
+      prev.map((t) => (t.id === id ? { ...t, leaving: true } : t))
+    )
+    setTimeout(() => {
+      setToasts((prev) => prev.filter((t) => t.id !== id))
+    }, 300)
   }, [])
 
   return { toasts, addToast, removeToast }
