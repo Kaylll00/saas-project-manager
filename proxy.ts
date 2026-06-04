@@ -1,4 +1,7 @@
-export { default } from "next-auth/middleware"
+import { withAuth } from "next-auth/middleware"
+
+export default withAuth
+export { withAuth as proxy }
 
 export const config = {
   matcher: [

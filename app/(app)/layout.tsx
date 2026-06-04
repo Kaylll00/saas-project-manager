@@ -1,5 +1,6 @@
 import AppSidebar from "@/components/AppSidebar"
 import Toaster from "@/components/Toaster"
+import CommandPalette from "@/components/ui/command-palette"
 
 export default function AppLayout({
   children,
@@ -10,6 +11,7 @@ export default function AppLayout({
     <div className="min-h-screen bg-slate-50">
       <AppSidebar />
       <Toaster />
+      <CommandPalette />
 
       {/* Main content area */}
       <div className="lg:pl-64">

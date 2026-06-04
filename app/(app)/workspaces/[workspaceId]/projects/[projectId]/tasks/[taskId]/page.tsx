@@ -15,6 +15,9 @@ import {
   AlertCircle,
   ChevronDown,
   Loader2,
+  Pencil,
+  Check,
+  X,
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
@@ -93,6 +96,16 @@ export default function TaskDetailPage() {
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
 
+  // Edit mode
+  const [isEditing, setIsEditing] = useState(false)
+  const [editTitle, setEditTitle] = useState("")
+  const [editDescription, setEditDescription] = useState("")
+  const [editPriority, setEditPriority] = useState("MEDIUM")
+  const [editAssigneeId, setEditAssigneeId] = useState<string | null>(null)
+  const [editDueDate, setEditDueDate] = useState("")
+  const [isSavingEdit, setIsSavingEdit] = useState(false)
+  const [members, setMembers] = useState<{ id: string; name: string | null; email: string | null; image: string | null }[]>([])
+
   const loadTask = async () => {
     try {
       const [taskRes, wsRes, commentsRes, labelsRes] = await Promise.all([
@@ -132,6 +145,57 @@ export default function TaskDetailPage() {
   useEffect(() => {
     commentEndRef.current?.scrollIntoView({ behavior: "smooth" })
   }, [comments.length])
+
+  // Load members when entering edit mode
+  useEffect(() => {
+    if (isEditing) {
+      fetch(`/api/workspaces/${workspaceId}/members`)
+        .then((r) => r.json())
+        .then((data) => { if (data.members) setMembers(data.members) })
+        .catch(() => {})
+    }
+  }, [isEditing, workspaceId])
+
+  const startEditing = () => {
+    if (!task) return
+    setEditTitle(task.title)
+    setEditDescription(task.description || "")
+    setEditPriority(task.priority)
+    setEditAssigneeId(task.assignee?.id || null)
+    setEditDueDate(task.dueDate ? task.dueDate.split("T")[0] : "")
+    setIsEditing(true)
+  }
+
+  const cancelEditing = () => {
+    setIsEditing(false)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!task || !editTitle.trim()) return
+    setIsSavingEdit(true)
+    try {
+      const res = await fetch(`/api/workspaces/${workspaceId}/projects/${projectId}/tasks/${taskId}`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          title: editTitle.trim(),
+          description: editDescription.trim() || null,
+          priority: editPriority,
+          assigneeId: editAssigneeId,
+          dueDate: editDueDate || null,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || "Failed to update task")
+      setTask(data.task)
+      setIsEditing(false)
+      toast("Task updated successfully", "success")
+    } catch (err) {
+      toast(err instanceof Error ? err.message : "Failed to update task", "error")
+    } finally {
+      setIsSavingEdit(false)
+    }
+  }
 
   const handleStatusChange = async (newStatus: string) => {
     if (!task || newStatus === task.status) return
@@ -286,9 +350,18 @@ export default function TaskDetailPage() {
           {/* Header row */}
           <div className="flex items-start justify-between gap-4">
             <div className="flex-1">
-              <div className="flex items-center space-x-3">
+              {isEditing ? (
+                <input
+                  type="text"
+                  value={editTitle}
+                  onChange={(e) => setEditTitle(e.target.value)}
+                  className="w-full text-2xl font-bold text-slate-900 bg-white border-2 border-indigo-300 rounded-lg px-3 py-2 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                  maxLength={200}
+                  autoFocus
+                />
+              ) : (
                 <h1 className="font-display text-2xl font-bold text-slate-900">{task.title}</h1>
-              </div>
+              )}
               <div className="mt-3 flex flex-wrap items-center gap-3">
                 {/* Status selector */}
                 <div className="relative group">
@@ -314,23 +387,71 @@ export default function TaskDetailPage() {
                 </div>
 
                 {/* Priority */}
-                <span className={cn(
-                  "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                  priorityColors[task.priority] || "bg-slate-100 text-slate-600"
-                )}>
-                  <AlertCircle className="mr-1 size-3" />
-                  {task.priority}
-                </span>
+                {isEditing ? (
+                  <select
+                    value={editPriority}
+                    onChange={(e) => setEditPriority(e.target.value)}
+                    className="inline-flex items-center rounded-lg border-2 border-slate-200 bg-white px-3 py-1.5 text-xs font-semibold outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                  >
+                    <option value="LOW">LOW</option>
+                    <option value="MEDIUM">MEDIUM</option>
+                    <option value="HIGH">HIGH</option>
+                    <option value="URGENT">URGENT</option>
+                  </select>
+                ) : (
+                  <span className={cn(
+                    "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
+                    priorityColors[task.priority] || "bg-slate-100 text-slate-600"
+                  )}>
+                    <AlertCircle className="mr-1 size-3" />
+                    {task.priority}
+                  </span>
+                )}
               </div>
             </div>
 
-            <Button
-              variant="outline"
-              className="border-2 border-slate-300 font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
-              onClick={() => setShowDeleteConfirm(true)}
-            >
-              <Trash2 className="size-4" />
-            </Button>
+            <div className="flex items-center space-x-2">
+              {isEditing ? (
+                <>
+                  <Button
+                    onClick={handleSaveEdit}
+                    disabled={isSavingEdit || !editTitle.trim()}
+                    className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 border-2 border-indigo-600 font-semibold"
+                  >
+                    {isSavingEdit ? (
+                      <Loader2 className="size-4 animate-spin" />
+                    ) : (
+                      <Check className="size-4" />
+                    )}
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={cancelEditing}
+                    disabled={isSavingEdit}
+                    className="border-2 border-slate-300 font-semibold"
+                  >
+                    <X className="size-4" />
+                  </Button>
+                </>
+              ) : (
+                <>
+                  <Button
+                    variant="outline"
+                    onClick={startEditing}
+                    className="border-2 border-slate-300 font-semibold"
+                  >
+                    <Pencil className="size-4" />
+                  </Button>
+                  <Button
+                    variant="outline"
+                    className="border-2 border-slate-300 font-semibold text-red-600 hover:bg-red-50 hover:border-red-300 hover:text-red-700"
+                    onClick={() => setShowDeleteConfirm(true)}
+                  >
+                    <Trash2 className="size-4" />
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
 
           {/* Delete confirmation */}
@@ -348,27 +469,67 @@ export default function TaskDetailPage() {
             </div>
           )}
 
-          {/* Description */}
-          {task.description && (
+          {/* Description - editable */}
+          {isEditing ? (
+            <div className="mt-5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1.5 block">Description</label>
+              <textarea
+                value={editDescription}
+                onChange={(e) => setEditDescription(e.target.value)}
+                placeholder="Add a description..."
+                rows={3}
+                className="flex w-full resize-none rounded-lg border-2 border-slate-200 bg-white px-4 py-3 text-sm font-medium text-slate-900 outline-none transition-all placeholder:text-slate-400 focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                maxLength={5000}
+              />
+            </div>
+          ) : task.description ? (
             <div className="mt-5 rounded-lg bg-slate-50 p-4">
               <p className="text-sm text-slate-700 whitespace-pre-wrap">{task.description}</p>
             </div>
-          )}
+          ) : null}
 
-          {/* Meta info */}
+          {/* Meta info - editable */}
           <div className="mt-5 flex flex-wrap items-center gap-4 text-sm text-slate-500">
-            {task.assignee && (
+            {/* Assignee */}
+            {isEditing ? (
+              <div className="flex items-center space-x-1.5">
+                <User className="size-3.5 flex-shrink-0" />
+                <select
+                  value={editAssigneeId || ""}
+                  onChange={(e) => setEditAssigneeId(e.target.value || null)}
+                  className="rounded-lg border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                >
+                  <option value="">Unassigned</option>
+                  {members.map((m) => (
+                    <option key={m.id} value={m.id}>{m.name || m.email || "Unknown"}</option>
+                  ))}
+                </select>
+              </div>
+            ) : task.assignee ? (
               <span className="flex items-center space-x-1.5">
                 <User className="size-3.5" />
                 <span>{task.assignee.name || "Unassigned"}</span>
               </span>
-            )}
-            {task.dueDate && (
+            ) : null}
+
+            {/* Due date */}
+            {isEditing ? (
+              <div className="flex items-center space-x-1.5">
+                <Calendar className="size-3.5 flex-shrink-0" />
+                <input
+                  type="date"
+                  value={editDueDate}
+                  onChange={(e) => setEditDueDate(e.target.value)}
+                  className="rounded-lg border-2 border-slate-200 bg-white px-2.5 py-1 text-xs font-medium text-slate-700 outline-none transition-all focus:border-indigo-500 focus:ring-4 focus:ring-indigo-500/10"
+                />
+              </div>
+            ) : task.dueDate ? (
               <span className="flex items-center space-x-1.5">
                 <Calendar className="size-3.5" />
                 <span>{new Date(task.dueDate).toLocaleDateString()}</span>
               </span>
-            )}
+            ) : null}
+
             <span className="flex items-center space-x-1.5">
               <MessageSquare className="size-3.5" />
               <span>{comments.length} comment{comments.length !== 1 ? "s" : ""}</span>
