@@ -1,6 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Save, Trash2 } from "lucide-react"
@@ -26,7 +27,6 @@ export default function WorkspaceSettingsPage() {
   const [isSaving, setIsSaving] = useState(false)
   const [isDeleting, setIsDeleting] = useState(false)
   const [error, setError] = useState<string | null>(null)
-  const [success, setSuccess] = useState<string | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
 
   useEffect(() => {
@@ -53,7 +53,6 @@ export default function WorkspaceSettingsPage() {
 
     setIsSaving(true)
     setError(null)
-    setSuccess(null)
 
     try {
       const res = await fetch(`/api/workspaces/${workspaceId}`, {
@@ -65,7 +64,7 @@ export default function WorkspaceSettingsPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Failed to update workspace")
 
-      setSuccess("Workspace name updated successfully!")
+      toast("Workspace updated successfully!", "success")
       setWorkspace((prev) => prev ? { ...prev, name: name.trim() } : prev)
       router.refresh()
     } catch (err) {
@@ -99,8 +98,25 @@ export default function WorkspaceSettingsPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="size-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+      <div className="mx-auto max-w-2xl">
+        <div className="h-4 w-36 animate-pulse rounded bg-slate-200 mb-6" />
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="space-y-3 mb-8">
+            <div className="h-7 w-48 animate-pulse rounded bg-slate-200" />
+            <div className="h-4 w-64 animate-pulse rounded bg-slate-200" />
+          </div>
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
+              <div className="h-12 w-full animate-pulse rounded-lg bg-slate-200" />
+            </div>
+            <div className="space-y-2">
+              <div className="h-4 w-36 animate-pulse rounded bg-slate-200" />
+              <div className="h-24 w-full animate-pulse rounded-lg bg-slate-200" />
+            </div>
+            <div className="h-10 w-36 animate-pulse rounded-lg bg-slate-200" />
+          </div>
+        </div>
       </div>
     )
   }
@@ -147,11 +163,6 @@ export default function WorkspaceSettingsPage() {
             {error && (
               <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">
                 {error}
-              </div>
-            )}
-            {success && (
-              <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-600">
-                {success}
               </div>
             )}
 

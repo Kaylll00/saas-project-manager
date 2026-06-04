@@ -13,6 +13,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { SkeletonCard } from "@/components/ui/skeleton"
 
 type Invitation = {
   id: string
@@ -73,8 +74,10 @@ export default function InvitationsPage() {
       </div>
 
       {isLoading ? (
-        <div className="flex items-center justify-center py-20">
-          <div className="size-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+        <div className="space-y-4">
+          {[1, 2, 3].map((i) => (
+            <SkeletonCard key={i} className="h-32" />
+          ))}
         </div>
       ) : invitations.length === 0 ? (
         /* Empty state */

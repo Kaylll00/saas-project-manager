@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Plus } from "lucide-react"
 import Link from "next/link"
@@ -31,6 +32,7 @@ export default function NewWorkspacePage() {
         throw new Error(data.error || "Failed to create workspace")
       }
 
+      toast("Workspace created successfully!", "success")
       router.push(`/workspaces/${data.workspace.id}`)
       router.refresh()
     } catch (err) {

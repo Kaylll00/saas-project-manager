@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, UserPlus, X, Shield, Mail, Clock, Ban } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { SkeletonListRow } from "@/components/ui/skeleton"
 
 type Member = {
   id: string
@@ -49,7 +50,6 @@ export default function WorkspaceMembersPage() {
   const [inviteRole, setInviteRole] = useState("MEMBER")
   const [isInviting, setIsInviting] = useState(false)
   const [inviteError, setInviteError] = useState<string | null>(null)
-  const [inviteSuccess, setInviteSuccess] = useState<string | null>(null)
 
   const loadData = async () => {
     setIsLoading(true)
@@ -87,7 +87,6 @@ export default function WorkspaceMembersPage() {
 
     setIsInviting(true)
     setInviteError(null)
-    setInviteSuccess(null)
 
     try {
       const res = await fetch(`/api/workspaces/${workspaceId}/invitations`, {
@@ -99,7 +98,7 @@ export default function WorkspaceMembersPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Failed to send invitation")
 
-      setInviteSuccess(`Invitation sent to ${inviteEmail.trim()}!`)
+      toast(`Invitation sent to ${inviteEmail.trim()}!`, "success")
       setInviteEmail("")
       setShowInviteForm(false)
       loadData()
@@ -121,6 +120,7 @@ export default function WorkspaceMembersPage() {
         const data = await res.json()
         throw new Error(data.error || "Failed to revoke invitation")
       }
+      toast("Invitation revoked successfully", "success")
       loadData()
     } catch (err) {
       toast(err instanceof Error ? err.message : "Failed to revoke invitation", "error")
@@ -136,6 +136,7 @@ export default function WorkspaceMembersPage() {
         const data = await res.json()
         throw new Error(data.error || "Failed to remove member")
       }
+      toast("Member removed successfully", "success")
       loadData()
     } catch (err) {
       toast(err instanceof Error ? err.message : "Failed to remove member", "error")
@@ -153,8 +154,22 @@ export default function WorkspaceMembersPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="size-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+      <div className="mx-auto max-w-3xl">
+        <div className="h-4 w-36 animate-pulse rounded bg-slate-200 mb-6" />
+        <div className="rounded-xl border border-slate-200 bg-white p-8 shadow-sm">
+          <div className="flex items-center justify-between mb-6">
+            <div className="space-y-2">
+              <div className="h-7 w-24 animate-pulse rounded bg-slate-200" />
+              <div className="h-4 w-20 animate-pulse rounded bg-slate-200" />
+            </div>
+            <div className="h-10 w-24 animate-pulse rounded-lg bg-slate-200" />
+          </div>
+          <div className="space-y-1">
+            {[1, 2, 3, 4].map((i) => (
+              <SkeletonListRow key={i} />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
@@ -207,9 +222,6 @@ export default function WorkspaceMembersPage() {
               <form onSubmit={handleInvite} className="space-y-3">
                 {inviteError && (
                   <div className="rounded-lg border border-red-200 bg-red-50 p-3 text-sm text-red-600">{inviteError}</div>
-                )}
-                {inviteSuccess && (
-                  <div className="rounded-lg border border-green-200 bg-green-50 p-3 text-sm text-green-600">{inviteSuccess}</div>
                 )}
                 <div className="flex flex-col gap-3 sm:flex-row">
                   <input

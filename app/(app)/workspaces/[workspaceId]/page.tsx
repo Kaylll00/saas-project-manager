@@ -15,6 +15,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { SkeletonStatsCard, SkeletonCard, SkeletonActivityItem } from "@/components/ui/skeleton"
 
 type WorkspaceMember = {
   id: string
@@ -49,6 +50,16 @@ type ProjectSummary = {
   createdAt: string
 }
 
+type ActivityItem = {
+  id: string
+  action: string
+  message: string
+  user: { id: string; name: string | null; image: string | null } | null
+  project: { id: string; name: string } | null
+  task: { id: string; title: string } | null
+  createdAt: string
+}
+
 const statusBadges: Record<string, { label: string; bg: string; text: string }> = {
   PLANNING: { label: "Planning", bg: "bg-slate-100", text: "text-slate-600" },
   ACTIVE: { label: "Active", bg: "bg-green-100", text: "text-green-700" },
@@ -65,6 +76,7 @@ export default function WorkspaceDetailPage() {
   const [projects, setProjects] = useState<ProjectSummary[]>([])
   const [activities, setActivities] = useState<ActivityItem[]>([])
   const [isLoading, setIsLoading] = useState(true)
+  const [isActivitiesLoading, setIsActivitiesLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
@@ -86,6 +98,7 @@ export default function WorkspaceDetailPage() {
           .then((r) => r.ok ? r.json() : null)
           .then((d) => { if (d) setActivities(d.activities) })
           .catch(() => {})
+          .finally(() => setIsActivitiesLoading(false))
 
         setWorkspace(wsData.workspace)
       } catch (err) {
@@ -99,8 +112,68 @@ export default function WorkspaceDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="size-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+      <div className="space-y-6">
+        {/* Header skeleton */}
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-3">
+            <div className="h-4 w-32 animate-pulse rounded bg-slate-200" />
+            <div className="h-8 w-64 animate-pulse rounded bg-slate-200" />
+            <div className="h-4 w-48 animate-pulse rounded bg-slate-200" />
+          </div>
+          <div className="flex space-x-3">
+            <div className="h-10 w-28 animate-pulse rounded-lg bg-slate-200" />
+            <div className="h-10 w-36 animate-pulse rounded-lg bg-slate-200" />
+          </div>
+        </div>
+
+        {/* Stats skeleton */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
+          {[1, 2, 3].map((i) => (
+            <SkeletonStatsCard key={i} />
+          ))}
+        </div>
+
+        {/* Members skeleton */}
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="h-5 w-20 animate-pulse rounded bg-slate-200 mb-4" />
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <div key={i} className="flex items-center justify-between">
+                <div className="flex items-center space-x-3">
+                  <div className="size-9 animate-pulse rounded-full bg-slate-200" />
+                  <div className="space-y-2">
+                    <div className="h-4 w-28 animate-pulse rounded bg-slate-200" />
+                    <div className="h-3 w-36 animate-pulse rounded bg-slate-200" />
+                  </div>
+                </div>
+                <div className="h-5 w-14 animate-pulse rounded-full bg-slate-200" />
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Projects skeleton */}
+        <div className="space-y-4">
+          <div className="h-6 w-32 animate-pulse rounded bg-slate-200" />
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {[1, 2, 3].map((i) => (
+              <SkeletonCard key={i} />
+            ))}
+          </div>
+        </div>
+
+        {/* Activity skeleton */}
+        <div className="rounded-xl border border-slate-200 bg-white p-6 shadow-sm">
+          <div className="flex items-center space-x-2 mb-4">
+            <div className="size-5 animate-pulse rounded bg-slate-200" />
+            <div className="h-5 w-28 animate-pulse rounded bg-slate-200" />
+          </div>
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <SkeletonActivityItem key={i} />
+            ))}
+          </div>
+        </div>
       </div>
     )
   }
@@ -322,7 +395,13 @@ export default function WorkspaceDetailPage() {
           <h2 className="font-display text-lg font-bold text-slate-900">Recent Activity</h2>
         </div>
 
-        {activities.length === 0 ? (
+        {isActivitiesLoading ? (
+          <div className="space-y-3">
+            {[1, 2, 3].map((i) => (
+              <SkeletonActivityItem key={i} />
+            ))}
+          </div>
+        ) : activities.length === 0 ? (
           <div className="py-8 text-center">
             <p className="text-sm text-slate-400">No recent activity in this workspace.</p>
           </div>
@@ -361,17 +440,6 @@ export default function WorkspaceDetailPage() {
       </div>
     </div>
   )
-}
-
-// Types for the activity feed
-type ActivityItem = {
-  id: string
-  action: string
-  message: string
-  user: { id: string; name: string | null; image: string | null } | null
-  project: { id: string; name: string } | null
-  task: { id: string; title: string } | null
-  createdAt: string
 }
 
 function formatTimeAgo(dateStr: string): string {

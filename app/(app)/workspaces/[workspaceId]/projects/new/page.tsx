@@ -1,6 +1,7 @@
 "use client"
 
 import { useParams, useRouter } from "next/navigation"
+import { toast } from "@/hooks/use-toast"
 import { useState, useEffect } from "react"
 import { Button } from "@/components/ui/button"
 import { ArrowLeft, Loader2, Plus } from "lucide-react"
@@ -54,6 +55,7 @@ export default function NewProjectPage() {
         throw new Error(data.error || "Failed to create project")
       }
 
+      toast("Project created successfully!", "success")
       router.push(`/workspaces/${workspaceId}/projects/${data.project.id}`)
       router.refresh()
     } catch (err) {

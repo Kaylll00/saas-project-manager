@@ -18,6 +18,7 @@ import {
 } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
+import { SkeletonComment } from "@/components/ui/skeleton"
 
 type TaskData = {
   id: string
@@ -144,6 +145,7 @@ export default function TaskDetailPage() {
       const data = await res.json()
       if (!res.ok) throw new Error(data.error || "Failed to update status")
       setTask(data.task)
+      toast("Status updated successfully", "success")
     } catch (err) {
       toast(err instanceof Error ? err.message : "Failed to update status", "error")
     } finally {
@@ -166,6 +168,7 @@ export default function TaskDetailPage() {
       if (!res.ok) throw new Error(data.error || "Failed to add comment")
       setComments((prev) => [...prev, data.comment])
       setNewComment("")
+      toast("Comment added", "success")
     } catch (err) {
       toast(err instanceof Error ? err.message : "Failed to add comment", "error")
     } finally {
@@ -200,6 +203,7 @@ export default function TaskDetailPage() {
         const data = await res.json()
         throw new Error(data.error || "Failed to delete task")
       }
+      toast("Task deleted successfully", "success")
       router.push(`/workspaces/${workspaceId}/projects/${projectId}`)
       router.refresh()
     } catch (err) {
@@ -210,8 +214,43 @@ export default function TaskDetailPage() {
 
   if (isLoading) {
     return (
-      <div className="flex items-center justify-center py-20">
-        <div className="size-8 animate-spin rounded-full border-4 border-indigo-200 border-t-indigo-600" />
+      <div className="mx-auto max-w-4xl">
+        <div className="h-4 w-32 animate-pulse rounded bg-slate-200 mb-6" />
+        <div className="space-y-6">
+          {/* Main card skeleton */}
+          <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+            <div className="space-y-4">
+              <div className="h-8 w-3/4 animate-pulse rounded bg-slate-200" />
+              <div className="flex space-x-2">
+                <div className="h-6 w-20 animate-pulse rounded-full bg-slate-200" />
+                <div className="h-6 w-16 animate-pulse rounded-full bg-slate-200" />
+              </div>
+              <div className="flex flex-wrap gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-4 w-24 animate-pulse rounded bg-slate-200" />
+                ))}
+              </div>
+              <div className="space-y-2 mt-4">
+                <div className="h-4 w-16 animate-pulse rounded bg-slate-200" />
+                <div className="flex flex-wrap gap-2">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-6 w-16 animate-pulse rounded-full bg-slate-200" />
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Comments skeleton */}
+          <div className="rounded-xl border border-slate-200 bg-white p-6 sm:p-8 shadow-sm">
+            <div className="h-6 w-32 animate-pulse rounded bg-slate-200 mb-4" />
+            <div className="space-y-4">
+              {[1, 2, 3].map((i) => (
+                <SkeletonComment key={i} />
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
     )
   }

@@ -5,6 +5,7 @@ import { Plus, FolderKanban, Users, ArrowRight } from "lucide-react"
 import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
+import { SkeletonCard } from "@/components/ui/skeleton"
 
 type WorkspaceSummary = {
   id: string
@@ -68,7 +69,7 @@ export default function WorkspacesPage() {
       {isLoading ? (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {[1, 2, 3].map((i) => (
-            <div key={i} className="h-36 animate-pulse rounded-xl bg-slate-200" />
+            <SkeletonCard key={i} />
           ))}
         </div>
       ) : workspaces.length === 0 ? (
