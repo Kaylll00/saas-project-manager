@@ -12,8 +12,6 @@ import {
   User,
   Plus,
   Mail,
-  Moon,
-  Sun,
   Bell,
   ExternalLink,
   Activity,
@@ -21,6 +19,7 @@ import {
 import { cn, formatTimeAgo } from "@/lib/utils"
 import { useState, useEffect, useRef, useCallback } from "react"
 import { useRealtimeNotifications, type RealtimeActivity } from "@/hooks/use-realtime-notifications"
+import CreateWorkspaceModal from "@/components/CreateWorkspaceModal"
 
 type WorkspaceSummary = {
   id: string
@@ -46,7 +45,6 @@ export default function AppSidebar() {
   const { data: session } = useSession()
   const [sidebarOpen, setSidebarOpen] = useState(false)
   const [workspaces, setWorkspaces] = useState<WorkspaceSummary[]>([])
-  const [darkMode, setDarkMode] = useState(false)
   const [unreadCount, setUnreadCount] = useState(0)
   const [isLoadingCount, setIsLoadingCount] = useState(true)
 
@@ -93,7 +91,8 @@ export default function AppSidebar() {
   useEffect(() => {
     if (pathname === "/dashboard") {
       localStorage.setItem(NOTIFICATION_STORAGE_KEY, new Date().toISOString())
-      setUnreadCount(0)
+      const timeout = window.setTimeout(() => setUnreadCount(0), 0)
+      return () => window.clearTimeout(timeout)
     }
   }, [pathname])
 
@@ -135,21 +134,6 @@ export default function AppSidebar() {
   }
 
   useEffect(() => {
-    const stored = localStorage.getItem("darkMode")
-    if (stored === "true" || (!stored && window.matchMedia("(prefers-color-scheme: dark)").matches)) {
-      setDarkMode(true)
-      document.documentElement.classList.add("dark")
-    }
-  }, [])
-
-  const toggleDarkMode = () => {
-    const newMode = !darkMode
-    setDarkMode(newMode)
-    localStorage.setItem("darkMode", String(newMode))
-    document.documentElement.classList.toggle("dark", newMode)
-  }
-
-  useEffect(() => {
     async function loadWorkspaces() {
       try {
         const res = await fetch("/api/workspaces")
@@ -172,9 +156,9 @@ export default function AppSidebar() {
   }
 
   const sidebarContent = (
-    <div className="flex h-full flex-col bg-slate-900 text-white">
+    <div className="flex h-full flex-col bg-[#11131f] text-white">
       {/* Logo */}
-      <div className="flex h-16 items-center justify-between border-b border-slate-800 px-6">
+      <div className="flex h-16 items-center justify-between border-b border-[#252a3d] px-6">
         <Link href="/dashboard" className="flex items-center space-x-2">
           <div className="flex size-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-purple-600">
             <div className="size-4 rounded-sm bg-white" />
@@ -209,8 +193,8 @@ export default function AppSidebar() {
               className={cn(
                 "flex items-center space-x-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
                 active
-                  ? "bg-indigo-500/20 text-indigo-300 shadow-sm"
-                  : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                  ? "bg-[#1e2235] text-white shadow-sm"
+                  : "text-[#8b8fa8] hover:bg-[#1e2235] hover:text-white"
               )}
             >
               <Icon className="size-5 flex-shrink-0" />
@@ -229,8 +213,8 @@ export default function AppSidebar() {
             className={cn(
               "flex w-full items-center justify-between rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
               showNotifications
-                ? "bg-indigo-500/20 text-indigo-300 shadow-sm"
-                : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                ? "bg-[#1e2235] text-white shadow-sm"
+                : "text-[#8b8fa8] hover:bg-[#1e2235] hover:text-white"
             )}
           >
             <div className="flex items-center space-x-3">
@@ -246,11 +230,11 @@ export default function AppSidebar() {
 
           {/* Notification dropdown */}
           {showNotifications && (
-            <div className="mt-1 rounded-xl border border-slate-700 bg-slate-800 shadow-2xl overflow-hidden">
+            <div className="mt-1 overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
               {/* Header */}
-              <div className="px-4 py-3 border-b border-slate-700">
+              <div className="border-b border-border px-4 py-3">
                 <div className="flex items-center justify-between">
-                  <h3 className="text-sm font-semibold text-white flex items-center space-x-2">
+                  <h3 className="flex items-center space-x-2 text-sm font-semibold text-foreground">
                     <Activity className="size-4" />
                     <span>Recent Activity</span>
                   </h3>
@@ -260,7 +244,7 @@ export default function AppSidebar() {
                       setSidebarOpen(false)
                       setShowNotifications(false)
                     }}
-                    className="text-xs font-medium text-indigo-400 hover:text-indigo-300 transition-colors flex items-center space-x-1"
+                    className="flex items-center space-x-1 text-xs font-medium text-primary transition-colors hover:text-primary/80"
                   >
                     <span>View all</span>
                     <ExternalLink className="size-3" />
@@ -274,26 +258,26 @@ export default function AppSidebar() {
                   <div className="p-4 space-y-3">
                     {[1, 2, 3].map((i) => (
                       <div key={i} className="flex items-start space-x-3 animate-pulse">
-                        <div className="size-7 rounded-full bg-slate-700 flex-shrink-0" />
+                        <div className="size-7 flex-shrink-0 rounded-full bg-muted" />
                         <div className="flex-1 space-y-2">
-                          <div className="h-3 w-3/4 rounded bg-slate-700" />
-                          <div className="h-2 w-1/3 rounded bg-slate-700" />
+                          <div className="h-3 w-3/4 rounded bg-muted" />
+                          <div className="h-2 w-1/3 rounded bg-muted" />
                         </div>
                       </div>
                     ))}
                   </div>
                 ) : notificationActivities.length === 0 ? (
                   <div className="p-8 text-center">
-                    <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-slate-700">
-                      <Bell className="size-5 text-slate-400" />
+                    <div className="mx-auto flex size-10 items-center justify-center rounded-full bg-muted">
+                      <Bell className="size-5 text-muted-foreground" />
                     </div>
-                    <p className="mt-3 text-sm text-slate-400">No recent activity</p>
-                    <p className="mt-0.5 text-xs text-slate-500">
+                    <p className="mt-3 text-sm text-muted-foreground">No recent activity</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
                       Activity from your workspaces will appear here.
                     </p>
                   </div>
                 ) : (
-                  <div className="divide-y divide-slate-700/50">
+                  <div className="divide-y divide-border">
                     {notificationActivities.map((a) => (
                       <Link
                         key={a.id}
@@ -306,21 +290,21 @@ export default function AppSidebar() {
                           setSidebarOpen(false)
                           setShowNotifications(false)
                         }}
-                        className="flex items-start space-x-3 px-4 py-3 hover:bg-slate-700/50 transition-colors group"
+                        className="group flex items-start space-x-3 px-4 py-3 transition-colors hover:bg-accent"
                       >
                         {a.user?.image ? (
                           <img src={a.user.image} alt="" className="size-7 rounded-full mt-0.5 flex-shrink-0" />
                         ) : (
-                          <div className="flex size-7 items-center justify-center rounded-full bg-indigo-500/30 text-indigo-300 font-semibold text-[10px] flex-shrink-0 mt-0.5">
+                          <div className="mt-0.5 flex size-7 flex-shrink-0 items-center justify-center rounded-full bg-primary/15 text-[10px] font-semibold text-primary">
                             {a.user?.name?.charAt(0) || "?"}
                           </div>
                         )}
                         <div className="flex-1 min-w-0">
-                          <p className="text-xs text-slate-300 leading-snug group-hover:text-white transition-colors">
+                          <p className="text-xs leading-snug text-foreground transition-colors">
                             <span className="font-semibold">{a.user?.name || "Someone"}</span>{" "}
                             {a.message.toLowerCase()}
                           </p>
-                          <div className="mt-0.5 flex items-center space-x-1.5 text-[10px] text-slate-500">
+                          <div className="mt-0.5 flex items-center space-x-1.5 text-[10px] text-muted-foreground">
                             <span>{formatTimeAgo(a.createdAt)}</span>
                             <span>·</span>
                             <span className="truncate max-w-[80px]">{a.workspace.name}</span>
@@ -339,16 +323,21 @@ export default function AppSidebar() {
         {workspaces.length > 0 && (
           <div className="pt-4">
             <div className="mb-2 flex items-center justify-between px-3">
-              <span className="text-xs font-semibold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-semibold uppercase tracking-wider text-[#8b8fa8]">
                 My Workspaces
               </span>
-              <Link
-                href="/workspaces/new"
-                className="flex size-5 items-center justify-center rounded text-slate-500 hover:bg-slate-800 hover:text-white transition-colors"
-                aria-label="Create workspace"
-              >
-                <Plus className="size-3.5" />
-              </Link>
+              <CreateWorkspaceModal
+                trigger={(open) => (
+                  <button
+                    type="button"
+                    onClick={open}
+                    className="flex size-5 items-center justify-center rounded text-[#8b8fa8] hover:bg-[#1e2235] hover:text-white transition-colors"
+                    aria-label="Create workspace"
+                  >
+                    <Plus className="size-3.5" />
+                  </button>
+                )}
+              />
             </div>
             <div className="space-y-0.5">
               {workspaces.map((ws) => {
@@ -362,11 +351,11 @@ export default function AppSidebar() {
                     className={cn(
                       "flex items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
                       active
-                        ? "bg-indigo-500/20 text-indigo-300"
-                        : "text-slate-400 hover:bg-slate-800 hover:text-white"
+                        ? "bg-[#1e2235] text-white"
+                        : "text-[#8b8fa8] hover:bg-[#1e2235] hover:text-white"
                     )}
                   >
-                    <div className="flex size-5 items-center justify-center rounded bg-slate-800 text-[10px] font-bold text-slate-400">
+                    <div className="flex size-5 items-center justify-center rounded bg-[#1e2235] text-[10px] font-bold text-white">
                       {ws.name.charAt(0).toUpperCase()}
                     </div>
                     <span className="truncate">{ws.name}</span>
@@ -378,20 +367,8 @@ export default function AppSidebar() {
         )}
       </nav>
 
-      {/* Dark mode toggle */}
-      <div className="border-t border-slate-800 px-4 py-2">
-        <button
-          onClick={toggleDarkMode}
-          className="flex w-full items-center space-x-3 rounded-lg px-3 py-2 text-sm font-medium text-slate-400 hover:bg-slate-800 hover:text-white transition-all duration-200"
-          aria-label={darkMode ? "Switch to light mode" : "Switch to dark mode"}
-        >
-          {darkMode ? <Sun className="size-5" /> : <Moon className="size-5" />}
-          <span>{darkMode ? "Light Mode" : "Dark Mode"}</span>
-        </button>
-      </div>
-
       {/* User section */}
-      <div className="border-t border-slate-800 p-4">
+      <div className="border-t border-[#252a3d] p-4">
         <div className="flex items-center space-x-3">
           {session?.user?.image ? (
             <img
@@ -412,13 +389,13 @@ export default function AppSidebar() {
             >
               {session?.user?.name || "User"}
             </Link>
-            <p className="truncate text-xs text-slate-400">
+            <p className="truncate text-xs text-[#8b8fa8]">
               {session?.user?.email || ""}
             </p>
           </div>
           <button
             onClick={() => signOut({ callbackUrl: "/" })}
-            className="flex size-8 items-center justify-center rounded-lg text-slate-400 hover:bg-slate-800 hover:text-red-400 transition-colors"
+            className="flex size-8 items-center justify-center rounded-lg text-[#8b8fa8] hover:bg-[#1e2235] hover:text-red-400 transition-colors"
             aria-label="Sign out"
           >
             <LogOut className="size-4" />
@@ -456,7 +433,7 @@ export default function AppSidebar() {
       {/* Mobile hamburger button */}
       <button
         onClick={() => setSidebarOpen(true)}
-        className="fixed left-4 top-3 z-30 flex size-10 items-center justify-center rounded-lg bg-white text-slate-700 shadow-md border border-slate-200 transition-colors hover:bg-slate-50 dark:bg-slate-800 dark:text-slate-300 dark:border-slate-700 dark:hover:bg-slate-700 lg:hidden"
+        className="fixed left-4 top-3 z-30 flex size-10 items-center justify-center rounded-lg bg-white text-slate-700 shadow-md border border-slate-200 transition-colors hover:bg-slate-50 lg:hidden"
         aria-label="Open sidebar"
       >
         <Menu className="size-5" />

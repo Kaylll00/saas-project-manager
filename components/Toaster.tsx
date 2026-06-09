@@ -6,9 +6,9 @@ import { cn } from "@/lib/utils"
 import { X, CheckCircle, AlertCircle, Info } from "lucide-react"
 
 const variantStyles = {
-  success: "border-green-200 bg-green-50 text-green-700 dark:border-green-700 dark:bg-green-900/30 dark:text-green-300",
-  error: "border-red-200 bg-red-50 text-red-600 dark:border-red-700 dark:bg-red-900/30 dark:text-red-300",
-  info: "border-indigo-200 bg-indigo-50 text-indigo-700 dark:border-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
+  success: "border-green-200 bg-green-50 text-green-700",
+  error: "border-red-200 bg-red-50 text-red-600",
+  info: "border-indigo-200 bg-indigo-50 text-indigo-700",
 }
 
 const variantIcons = {
@@ -18,19 +18,17 @@ const variantIcons = {
 }
 
 const progressBarColors = {
-  success: "bg-green-400 dark:bg-green-500",
-  error: "bg-red-400 dark:bg-red-500",
-  info: "bg-indigo-400 dark:bg-indigo-500",
+  success: "bg-green-400",
+  error: "bg-red-400",
+  info: "bg-indigo-400",
 }
 
 function ToastProgress({ toast }: { toast: ToastType }) {
   const [progress, setProgress] = useState(100)
 
   useEffect(() => {
-    if (toast.leaving) {
-      setProgress(0)
-      return
-    }
+    if (toast.leaving) return
+
     const start = Date.now()
     const duration = 4700
     const timer = setInterval(() => {
@@ -43,10 +41,10 @@ function ToastProgress({ toast }: { toast: ToastType }) {
   }, [toast.leaving])
 
   return (
-    <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-xl overflow-hidden bg-black/5 dark:bg-white/5">
+    <div className="absolute bottom-0 left-0 right-0 h-1 rounded-b-xl overflow-hidden bg-black/5">
       <div
         className={cn("h-full rounded-b-xl transition-all duration-300 ease-linear", progressBarColors[toast.variant])}
-        style={{ width: `${progress}%` }}
+        style={{ width: `${toast.leaving ? 0 : progress}%` }}
       />
     </div>
   )

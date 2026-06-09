@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState, useCallback, useRef } from "react"
+import { useEffect, useState, useCallback, useRef, useMemo } from "react"
 import { useRouter } from "next/navigation"
 import { Search, FolderKanban, FileText, ListTodo, ArrowRight, Command } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -18,7 +18,6 @@ export default function CommandPalette() {
   const router = useRouter()
   const [isOpen, setIsOpen] = useState(false)
   const [query, setQuery] = useState("")
-  const [results, setResults] = useState<SearchResult[]>([])
   const [allItems, setAllItems] = useState<SearchResult[]>([])
   const [selectedIndex, setSelectedIndex] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
@@ -88,10 +87,8 @@ export default function CommandPalette() {
         }
 
         setAllItems(items)
-        setResults(items)
       } catch {
         setAllItems([])
-        setResults([])
       } finally {
         setIsLoading(false)
       }
@@ -126,22 +123,15 @@ export default function CommandPalette() {
     }
   }, [isOpen])
 
-  // Filter results based on query
-  useEffect(() => {
-    if (!query.trim()) {
-      setResults(allItems)
-      setSelectedIndex(0)
-      return
-    }
+  const results = useMemo(() => {
+    if (!query.trim()) return allItems
 
     const lower = query.toLowerCase()
-    const filtered = allItems.filter(
+    return allItems.filter(
       (item) =>
         item.label.toLowerCase().includes(lower) ||
         item.description.toLowerCase().includes(lower)
     )
-    setResults(filtered)
-    setSelectedIndex(0)
   }, [query, allItems])
 
   const navigate = useCallback(
@@ -182,12 +172,12 @@ export default function CommandPalette() {
         role="dialog"
         aria-modal="true"
         aria-label="Command palette"
-        className="fixed left-1/2 top-[15%] z-[201] w-full max-w-xl -translate-x-1/2"
+        className="fixed left-1/2 top-[15%] z-[201] w-[calc(100%-2rem)] max-w-xl -translate-x-1/2"
       >
-        <div className="rounded-xl border border-slate-200 bg-white shadow-2xl dark:border-slate-700 dark:bg-slate-800 overflow-hidden">
+        <div className="overflow-hidden rounded-xl border border-border bg-popover text-popover-foreground shadow-2xl">
           {/* Search input */}
-          <div className="flex items-center border-b border-slate-200 px-4 dark:border-slate-700">
-            <Search className="size-5 text-slate-400 flex-shrink-0" />
+          <div className="flex items-center border-b border-border px-4">
+            <Search className="size-5 flex-shrink-0 text-muted-foreground" />
             <input
               ref={inputRef}
               type="text"
@@ -195,11 +185,11 @@ export default function CommandPalette() {
               onChange={(e) => setQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               placeholder="Search workspaces, projects, tasks..."
-              className="flex-1 h-14 bg-transparent px-3 text-base font-medium text-slate-900 outline-none placeholder:text-slate-400 dark:text-white dark:placeholder:text-slate-500"
+              className="h-14 flex-1 bg-transparent px-3 text-base font-medium text-foreground outline-none placeholder:text-muted-foreground"
               autoComplete="off"
               spellCheck={false}
             />
-            <kbd className="hidden sm:inline-flex items-center rounded-md border border-slate-200 bg-slate-50 px-1.5 py-0.5 text-[11px] font-medium text-slate-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-400">
+            <kbd className="hidden items-center rounded-md border border-border bg-muted px-1.5 py-0.5 text-[11px] font-medium text-muted-foreground sm:inline-flex">
               <Command className="size-3 mr-0.5" />
               K
             </kbd>
@@ -211,24 +201,24 @@ export default function CommandPalette() {
               <div className="space-y-1 p-2" role="status" aria-label="Loading search results">
                 {[1, 2, 3, 4, 5].map((i) => (
                   <div key={i} className="flex items-center space-x-3 rounded-lg p-2 animate-pulse">
-                    <div className="size-8 rounded-lg bg-slate-200 dark:bg-slate-700" />
+                    <div className="size-8 rounded-lg bg-muted" />
                     <div className="flex-1 space-y-1.5">
-                      <div className="h-4 w-3/4 rounded bg-slate-200 dark:bg-slate-700" />
-                      <div className="h-3 w-1/2 rounded bg-slate-100 dark:bg-slate-700/50" />
+                      <div className="h-4 w-3/4 rounded bg-muted" />
+                      <div className="h-3 w-1/2 rounded bg-muted/70" />
                     </div>
                   </div>
                 ))}
               </div>
             ) : hasNoResults ? (
               <div className="py-8 text-center">
-                <p className="text-sm text-slate-500 dark:text-slate-400">No results found</p>
-                <p className="text-xs text-slate-400 dark:text-slate-500 mt-1">
+                <p className="text-sm text-muted-foreground">No results found</p>
+                <p className="mt-1 text-xs text-muted-foreground">
                   Try a different search term
                 </p>
               </div>
             ) : results.length === 0 && !query ? (
               <div className="py-6 text-center">
-                <p className="text-sm text-slate-400 dark:text-slate-500">
+                <p className="text-sm text-muted-foreground">
                   Start typing to search...
                 </p>
               </div>
@@ -247,7 +237,7 @@ export default function CommandPalette() {
 
                   return (
                     <div key={type}>
-                      <div className="px-2 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+                      <div className="px-2 pt-3 pb-1 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
                         {typeLabels[type]}
                       </div>
                       {typeResults.map((item) => {
@@ -261,25 +251,25 @@ export default function CommandPalette() {
                             className={cn(
                               "flex w-full items-center space-x-3 rounded-lg px-3 py-2.5 text-left transition-colors",
                               idx === selectedIndex
-                                ? "bg-indigo-50 text-indigo-700 dark:bg-indigo-500/10 dark:text-indigo-300"
-                                : "text-slate-700 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700/50"
+                                ? "bg-accent text-accent-foreground"
+                                : "text-foreground hover:bg-accent/60"
                             )}
                           >
                             <div
                               className={cn(
                                 "flex size-8 items-center justify-center rounded-lg",
                                 item.type === "workspace"
-                                  ? "bg-gradient-to-br from-indigo-500 to-purple-600"
+                                  ? "bg-gradient-to-br from-indigo-500 to-purple-600 text-white"
                                   : item.type === "project"
-                                  ? "bg-blue-100 text-blue-600 dark:bg-blue-900/40 dark:text-blue-400"
-                                  : "bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-400"
+                                  ? "bg-blue-100 text-blue-600"
+                                  : "bg-slate-100 text-slate-500"
                               )}
                             >
                               <Icon className="size-4" />
                             </div>
                             <div className="flex-1 min-w-0">
                               <p className="text-sm font-medium truncate">{item.label}</p>
-                              <p className="text-xs text-slate-400 dark:text-slate-500 truncate">
+                              <p className="truncate text-xs text-muted-foreground">
                                 {item.description}
                               </p>
                             </div>
@@ -297,18 +287,18 @@ export default function CommandPalette() {
           </div>
 
           {/* Footer */}
-          <div className="border-t border-slate-200 px-4 py-2 dark:border-slate-700">
-            <div className="flex items-center space-x-4 text-[11px] text-slate-400 dark:text-slate-500">
+          <div className="border-t border-border px-4 py-2">
+            <div className="flex items-center space-x-4 text-[11px] text-muted-foreground">
               <span className="flex items-center space-x-1">
-                <kbd className="inline-flex items-center rounded border border-slate-300 bg-slate-50 px-1 font-medium text-slate-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-400">↑↓</kbd>
+                <kbd className="inline-flex items-center rounded border border-border bg-muted px-1 font-medium text-muted-foreground">Up/Down</kbd>
                 <span>Navigate</span>
               </span>
               <span className="flex items-center space-x-1">
-                <kbd className="inline-flex items-center rounded border border-slate-300 bg-slate-50 px-1 font-medium text-slate-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-400">↵</kbd>
+                <kbd className="inline-flex items-center rounded border border-border bg-muted px-1 font-medium text-muted-foreground">Enter</kbd>
                 <span>Open</span>
               </span>
               <span className="flex items-center space-x-1">
-                <kbd className="inline-flex items-center rounded border border-slate-300 bg-slate-50 px-1 font-medium text-slate-500 dark:border-slate-600 dark:bg-slate-700 dark:text-slate-400">Esc</kbd>
+                <kbd className="inline-flex items-center rounded border border-border bg-muted px-1 font-medium text-muted-foreground">Esc</kbd>
                 <span>Close</span>
               </span>
             </div>

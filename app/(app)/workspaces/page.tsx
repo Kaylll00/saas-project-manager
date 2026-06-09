@@ -6,6 +6,7 @@ import Link from "next/link"
 import { cn } from "@/lib/utils"
 import { useEffect, useState } from "react"
 import { SkeletonCard } from "@/components/ui/skeleton"
+import CreateWorkspaceModal from "@/components/CreateWorkspaceModal"
 
 type WorkspaceSummary = {
   id: string
@@ -40,10 +41,10 @@ export default function WorkspacesPage() {
   }, [])
 
   const roleColors: Record<string, string> = {
-    OWNER: "bg-amber-100 text-amber-700",
-    ADMIN: "bg-purple-100 text-purple-700",
-    MEMBER: "bg-blue-100 text-blue-700",
-    VIEWER: "bg-slate-100 text-slate-700",
+    OWNER: "bg-primary/10 text-primary",
+    ADMIN: "bg-secondary text-secondary-foreground",
+    MEMBER: "bg-secondary text-secondary-foreground",
+    VIEWER: "bg-muted text-muted-foreground",
   }
 
   return (
@@ -51,19 +52,21 @@ export default function WorkspacesPage() {
       {/* Page header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="font-display text-2xl font-bold text-slate-900 sm:text-3xl">
+          <h1 className="font-display text-2xl font-bold text-foreground sm:text-3xl">
             Workspaces
           </h1>
-          <p className="mt-1 text-slate-600">
+          <p className="mt-1 text-muted-foreground">
             All your workspaces in one place. Create, manage, and switch between them.
           </p>
         </div>
-        <Button asChild className="bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 border-2 border-indigo-600 font-semibold shadow-lg">
-          <Link href="/workspaces/new">
-            <Plus className="mr-1.5 size-4" />
-            New Workspace
-          </Link>
-        </Button>
+        <CreateWorkspaceModal
+          trigger={(open) => (
+            <Button onClick={open} className="bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-lg">
+              <Plus className="mr-1.5 size-4" />
+              New Workspace
+            </Button>
+          )}
+        />
       </div>
 
       {isLoading ? (
@@ -74,22 +77,24 @@ export default function WorkspacesPage() {
         </div>
       ) : workspaces.length === 0 ? (
         /* Empty state */
-        <div className="rounded-xl border-2 border-dashed border-slate-300 bg-white p-16 text-center">
-          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-indigo-100">
-            <FolderKanban className="size-8 text-indigo-600" />
+        <div className="rounded-xl border-2 border-dashed border-border bg-card p-16 text-center">
+          <div className="mx-auto flex size-16 items-center justify-center rounded-full bg-secondary">
+            <FolderKanban className="size-8 text-primary" />
           </div>
-          <h2 className="mt-4 font-display text-xl font-bold text-slate-900">
+          <h2 className="mt-4 font-display text-xl font-bold text-foreground">
             No workspaces yet
           </h2>
-          <p className="mt-2 text-slate-600 max-w-md mx-auto">
+          <p className="mt-2 text-muted-foreground max-w-md mx-auto">
             Workspaces are where your teams collaborate. Create one to start managing projects and tasks.
           </p>
-          <Button asChild size="lg" className="mt-6 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 border-2 border-indigo-600 font-semibold shadow-lg">
-            <Link href="/workspaces/new">
+          <CreateWorkspaceModal
+            trigger={(open) => (
+              <Button onClick={open} size="lg" className="mt-6 bg-primary text-primary-foreground hover:bg-primary/90 font-semibold shadow-lg">
               <Plus className="mr-2 size-5" />
               Create Your First Workspace
-            </Link>
-          </Button>
+              </Button>
+            )}
+          />
         </div>
       ) : (
         /* Workspace grid */
@@ -98,17 +103,17 @@ export default function WorkspacesPage() {
             <Link
               key={ws.id}
               href={`/workspaces/${ws.id}`}
-              className="group relative rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all hover:shadow-md hover:-translate-y-1 hover:border-indigo-200"
+              className="group relative rounded-xl border border-border bg-card p-6 shadow-sm transition-all hover:shadow-md hover:-translate-y-1 hover:border-primary"
             >
               <div className="space-y-4">
                 {/* Icon + role badge */}
                 <div className="flex items-start justify-between">
-                  <div className="flex size-12 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-lg shadow-indigo-500/20">
-                    <FolderKanban className="size-6 text-white" />
+                  <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10">
+                    <FolderKanban className="size-6 text-primary" />
                   </div>
                   <span className={cn(
                     "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium",
-                    roleColors[ws.role] || "bg-slate-100 text-slate-700"
+                    roleColors[ws.role] || "bg-muted text-muted-foreground"
                   )}>
                     {ws.role}
                   </span>
@@ -116,10 +121,10 @@ export default function WorkspacesPage() {
 
                 {/* Name + stats */}
                 <div>
-                  <h3 className="font-display text-lg font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
+                  <h3 className="font-display text-lg font-bold text-foreground group-hover:text-primary transition-colors">
                     {ws.name}
                   </h3>
-                  <p className="mt-2 flex items-center space-x-3 text-sm text-slate-500">
+                  <p className="mt-2 flex items-center space-x-3 text-sm text-muted-foreground">
                     <span className="flex items-center space-x-1">
                       <Users className="size-3.5" />
                       <span>{ws.memberCount}</span>
@@ -130,7 +135,7 @@ export default function WorkspacesPage() {
                 </div>
 
                 {/* View link */}
-                <div className="flex items-center space-x-1 text-sm font-semibold text-indigo-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div className="flex items-center space-x-1 text-sm font-semibold text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                   <span>Open workspace</span>
                   <ArrowRight className="size-3.5" />
                 </div>
